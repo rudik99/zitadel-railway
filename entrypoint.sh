@@ -1,32 +1,32 @@
 #!/bin/bash
 
-# ZITADEL Railway Deployment Entrypoint Script
-# Handles Railway's deployment patterns and prevents duplicate constraint errors
+# ZITADEL Railway Automated Deployment Script
+# Automatically detects if initialization is needed and runs the appropriate command
 
 set -e
 
-echo "Starting ZITADEL Railway deployment..."
+echo "🚀 Starting ZITADEL Railway deployment..."
 
-# Wait for database to be ready
-echo "Waiting for database connection..."
-until pg_isready -h "$ZITADEL_DATABASE_POSTGRES_HOST" -p "$ZITADEL_DATABASE_POSTGRES_PORT" -U "$ZITADEL_DATABASE_POSTGRES_USER_USERNAME" -d "$ZITADEL_DATABASE_POSTGRES_DATABASE" 2>/dev/null; do
-    echo "Database not ready, waiting 2 seconds..."
-    sleep 2
-done
-
-echo "Database is ready!"
-
-# Check if instance already exists by querying the database directly
-INSTANCE_EXISTS=$(PGPASSWORD="$ZITADEL_DATABASE_POSTGRES_USER_PASSWORD" psql -h "$ZITADEL_DATABASE_POSTGRES_HOST" -p "$ZITADEL_DATABASE_POSTGRES_PORT" -U "$ZITADEL_DATABASE_POSTGRES_USER_USERNAME" -d "$ZITADEL_DATABASE_POSTGRES_DATABASE" -t -c "SELECT COUNT(*) FROM information_schema.tables WHERE table_name='instances';" 2>/dev/null || echo "0")
-
-if [ "$INSTANCE_EXISTS" -gt 0 ]; then
-    DOMAIN_EXISTS=$(PGPASSWORD="$ZITADEL_DATABASE_POSTGRES_USER_PASSWORD" psql -h "$ZITADEL_DATABASE_POSTGRES_HOST" -p "$ZITADEL_DATABASE_POSTGRES_PORT" -U "$ZITADEL_DATABASE_POSTGRES_USER_USERNAME" -d "$ZITADEL_DATABASE_POSTGRES_DATABASE" -t -c "SELECT COUNT(*) FROM instances WHERE domain='$ZITADEL_EXTERNALDOMAIN';" 2>/dev/null || echo "0")
+# Function to check if ZITADEL database is initialized
+check_database_initialized() {
+    echo "🔍 Checking if ZITADEL database is initialized..."
     
-    if [ "$DOMAIN_EXISTS" -gt 0 ]; then
-        echo "Instance with domain $ZITADEL_EXTERNALDOMAIN already exists, starting normally..."
-        exec zitadel start --masterkeyFromEnv --tlsMode external "$@"
+    # Try to run a quick database check using ZITADEL's built-in validation
+    # We'll use the setup command with --steps to see what needs to be done
+    if zitadel setup --steps 2>&1 | grep -q "database is up to date"; then
+        echo "✅ Database is already initialized"
+        return 0
+    else
+        echo "❌ Database needs initialization"
+        return 1
     fi
-fi
+}
 
-echo "No existing instance found, running initial setup..."
-exec zitadel start-from-init --masterkeyFromEnv --tlsMode external --init-projections false "$@"
+# Check if database is initialized
+if check_database_initialized; then
+    echo "🎯 Starting ZITADEL in normal mode..."
+    exec zitadel start --masterkeyFromEnv --tlsMode external "$@"
+else
+    echo "🔧 Running ZITADEL initial setup..."
+    exec zitadel start-from-init --masterkeyFromEnv --tlsMode external "$@"
+fi
