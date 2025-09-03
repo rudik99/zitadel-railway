@@ -1,5 +1,10 @@
 FROM ghcr.io/zitadel/zitadel:latest
 
+# Install PostgreSQL client for database checks
+USER root
+RUN apt-get update && apt-get install -y postgresql-client && rm -rf /var/lib/apt/lists/*
+USER zitadel
+
 ARG ZITADEL_DATABASE_POSTGRES_HOST
 ARG ZITADEL_DATABASE_POSTGRES_PORT
 ARG ZITADEL_DATABASE_POSTGRES_DATABASE
@@ -54,6 +59,13 @@ ENV ZITADEL_OIDC_DEFAULTLOGINURLV2=${ZITADEL_OIDC_DEFAULTLOGINURLV2}
 ENV ZITADEL_OIDC_DEFAULTLOGOUTURLV2=${ZITADEL_OIDC_DEFAULTLOGOUTURLV2}
 ENV ZITADEL_OIDC_DEFAULTERRORURLV2=${ZITADEL_OIDC_DEFAULTERRORURLV2}
 
+# Copy and set up entrypoint script
+COPY entrypoint.sh /entrypoint.sh
+USER root
+RUN chmod +x /entrypoint.sh
+USER zitadel
+
 EXPOSE 8080
 
-CMD ["start-from-init", "--masterkeyFromEnv", "--tlsMode", "external"]
+# Use the smart entrypoint script
+ENTRYPOINT ["/entrypoint.sh"]
