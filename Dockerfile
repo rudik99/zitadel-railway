@@ -54,9 +54,8 @@ ENV ZITADEL_OIDC_DEFAULTLOGINURLV2=${ZITADEL_OIDC_DEFAULTLOGINURLV2}
 ENV ZITADEL_OIDC_DEFAULTLOGOUTURLV2=${ZITADEL_OIDC_DEFAULTLOGOUTURLV2}
 ENV ZITADEL_OIDC_DEFAULTERRORURLV2=${ZITADEL_OIDC_DEFAULTERRORURLV2}
 
-# Copy and set up the automated entrypoint script
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
+# Copy the automated entrypoint script with execute permissions
+COPY --chmod=755 entrypoint.sh /entrypoint.sh
 
 EXPOSE 8080
 
