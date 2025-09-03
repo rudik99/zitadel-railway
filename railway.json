@@ -4,8 +4,8 @@
     "builder": "dockerfile"
   },
   "deploy": {
-    "healthcheckPath": "/debug/healthz",
-    "healthcheckTimeout": 300,
-    "restartPolicyType": "never"
+    "healthcheckPath": "/debug/ready",
+    "healthcheckTimeout": 600,
+    "startCommand": "/entrypoint.sh"
   }
 }
