@@ -4,8 +4,6 @@
     "builder": "dockerfile"
   },
   "deploy": {
-    "healthcheckPath": "/debug/ready",
-    "healthcheckTimeout": 600,
     "startCommand": "/entrypoint.sh"
   }
 }
