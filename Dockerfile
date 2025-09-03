@@ -56,6 +56,7 @@ ENV ZITADEL_OIDC_DEFAULTERRORURLV2=${ZITADEL_OIDC_DEFAULTERRORURLV2}
 
 # Copy and set up the automated entrypoint script
 COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
 EXPOSE 8080
 
