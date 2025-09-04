@@ -54,10 +54,7 @@ ENV ZITADEL_OIDC_DEFAULTLOGINURLV2=${ZITADEL_OIDC_DEFAULTLOGINURLV2}
 ENV ZITADEL_OIDC_DEFAULTLOGOUTURLV2=${ZITADEL_OIDC_DEFAULTLOGOUTURLV2}
 ENV ZITADEL_OIDC_DEFAULTERRORURLV2=${ZITADEL_OIDC_DEFAULTERRORURLV2}
 
-# Copy the automated entrypoint script with execute permissions
-COPY --chmod=755 entrypoint.sh /entrypoint.sh
-
 EXPOSE 8080
 
-# Use the automated entrypoint script that detects initialization state
-ENTRYPOINT ["/entrypoint.sh"]
+# Use ZITADEL directly with start-from-init (simplest approach)
+CMD ["start-from-init", "--masterkeyFromEnv", "--tlsMode", "external"]
