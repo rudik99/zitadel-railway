@@ -54,7 +54,7 @@ ENV ZITADEL_OIDC_DEFAULTLOGOUTURLV2=${ZITADEL_OIDC_DEFAULTLOGOUTURLV2}
 ENV ZITADEL_OIDC_DEFAULTERRORURLV2=${ZITADEL_OIDC_DEFAULTERRORURLV2}
 
 # Create an empty PAT file to avoid the missing file error
-RUN touch /current-dir/login-client.pat
+RUN mkdir -p /current-dir && touch /current-dir/login-client.pat
 
 # Copy entrypoint script
 COPY --chmod=755 entrypoint.sh /entrypoint.sh
