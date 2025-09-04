@@ -1,3 +1,8 @@
+# We need a builder stage with shell to create the PAT file
+FROM alpine:latest AS builder
+RUN mkdir -p /pat && touch /pat/login-client.pat
+
+# Main ZITADEL image
 FROM ghcr.io/zitadel/zitadel:latest
 
 ARG ZITADEL_DATABASE_POSTGRES_HOST
@@ -48,17 +53,16 @@ ENV ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_MACHINE_NAME=${ZITADEL_FIRSTINSTANCE_O
 ENV ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_PAT_EXPIRATIONDATE=${ZITADEL_FIRSTINSTANCE_ORG_LOGINCLIENT_PAT_EXPIRATIONDATE}
 ENV ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED=${ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_REQUIRED}
 ENV ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI=${ZITADEL_DEFAULTINSTANCE_FEATURES_LOGINV2_BASEURI}
-ENV ZITADEL_OIDC_DEFAULTLOGINURLV2=${ZITADEL_OIDC_DEFAULTLOGOUTURLV2}
+ENV ZITADEL_OIDC_DEFAULTLOGINURLV2=${ZITADEL_OIDC_DEFAULTLOGINURLV2}
 ENV ZITADEL_OIDC_DEFAULTLOGOUTURLV2=${ZITADEL_OIDC_DEFAULTLOGOUTURLV2}
 ENV ZITADEL_OIDC_DEFAULTERRORURLV2=${ZITADEL_OIDC_DEFAULTERRORURLV2}
 
-# Set PAT file path to a writable location
-ENV ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH="/tmp/pat/login-client.pat"
+# Copy the PAT file from builder stage
+COPY --from=builder /pat/login-client.pat /app/pat/login-client.pat
+
+# Set PAT file path
+ENV ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH="/app/pat/login-client.pat"
 
 EXPOSE 8080
 
-# Override the base image's entrypoint to use shell
-ENTRYPOINT ["/bin/sh", "-c"]
-
-# Create PAT file and then start ZITADEL
-CMD ["mkdir -p /tmp/pat && touch /tmp/pat/login-client.pat && exec zitadel start-from-init --masterkeyFromEnv --tlsMode external"]
+CMD ["start-from-init", "--masterkeyFromEnv", "--tlsMode", "external"]
