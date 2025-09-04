@@ -57,5 +57,8 @@ ENV ZITADEL_FIRSTINSTANCE_LOGINCLIENTPATPATH="/tmp/pat/login-client.pat"
 
 EXPOSE 8080
 
-# Create wrapper script inline to handle PAT file creation
-CMD sh -c 'mkdir -p /tmp/pat && touch /tmp/pat/login-client.pat && exec zitadel start-from-init --masterkeyFromEnv --tlsMode external'
+# Override the base image's entrypoint to use shell
+ENTRYPOINT ["/bin/sh", "-c"]
+
+# Create PAT file and then start ZITADEL
+CMD ["mkdir -p /tmp/pat && touch /tmp/pat/login-client.pat && exec zitadel start-from-init --masterkeyFromEnv --tlsMode external"]
